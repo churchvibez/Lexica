@@ -1,3 +1,29 @@
+frontend/node_modules/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/.env.local
+backend/.env.development.local
+backend/.env.test.local
+backend/.env.production.local
+
+diploma otchet notes.txt
+diploma thoughts.txt
+*.odt
+
+
+
+
+
+
+
 node_modules/
 /.pnp
 .pnp.js
@@ -50,19 +76,3 @@ yarn-error.log*
 *.tgz
 
 .yarn-integrity
-
-frontend/node_modules/
-frontend/build/
-frontend/.env
-frontend/.env.local
-frontend/.env.development.local
-frontend/.env.test.local
-frontend/.env.production.local
-
-backend/node_modules/
-backend/dist/
-backend/.env
-backend/.env.local
-backend/.env.development.local
-backend/.env.test.local
-backend/.env.production.local
