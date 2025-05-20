@@ -7,7 +7,9 @@
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "test-db": "ts-node src/testConnection.ts",
+    "init-db": "ts-node src/database/init.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

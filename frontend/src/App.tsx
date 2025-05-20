@@ -1,12 +1,69 @@
 import React from 'react';
-import ModulesPage from './pages/ModulesPage.tsx';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import HomePage from './pages/unauthorized/HomePage.tsx';
+import LoginPage from './pages/unauthorized/LoginPage.tsx';
+import SignupPage from './pages/unauthorized/SignupPage.tsx';
+import DashboardPage from './pages/authorized/DashboardPage.tsx';
+import Header from './components/Header/Header.tsx';
+import ProtectedRoute from './components/ProtectedRoute.tsx';
+import PublicRoute from './components/PublicRoute.tsx';
+import { AuthProvider } from './context/AuthContext.tsx';
+import './design.scss';
 
 function App() {
   return (
-    <div className="App">
-      <ModulesPage />
-    </div>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Header />
+          <main className="main-content">
+            <Routes>
+              <Route 
+                path="/" 
+                element={
+                  <PublicRoute>
+                    <HomePage />
+                  </PublicRoute>
+                } 
+              />
+              <Route 
+                path="/login" 
+                element={
+                  <PublicRoute>
+                    <LoginPage />
+                  </PublicRoute>
+                } 
+              />
+              <Route 
+                path="/signup" 
+                element={
+                  <PublicRoute>
+                    <SignupPage />
+                  </PublicRoute>
+                } 
+              />
+              <Route 
+                path="/modules" 
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                } 
+              />
+              {/* Catch all route - must be last */}
+              <Route 
+                path="*" 
+                element={
+                  <ProtectedRoute>
+                    <Navigate to="/modules" replace />
+                  </ProtectedRoute>
+                } 
+              />
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 

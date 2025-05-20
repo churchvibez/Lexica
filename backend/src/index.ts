@@ -2,13 +2,22 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
+import { authController } from './controllers/authController';
 
 dotenv.config();
 
 const app = express();
 
+// CORS configuration
+const corsOptions = {
+  origin: 'http://localhost:3000', // Frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
 // middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // db connection
@@ -29,6 +38,9 @@ export const AppDataSource = new DataSource({
 app.get('/api/test', (req, res) => {
   res.json({ message: 'Backend is working!' });
 });
+
+// Routes
+app.post('/api/auth/login', authController.login);
 
 const PORT = process.env.PORT || 8080;
 
