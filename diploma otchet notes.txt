@@ -1,0 +1,81 @@
+
+
+
+ok so i need to write an отчет for my diploma work and there need to be a few different parts for it. the topic im doing is
+
+developing a web application for the learning and practice of the english language
+
+first things first i need an introduction
+
+this will contain  multiple things
+first of all is the introduction
+then the task itself that im doing, goals of the project, and technical tasks that need to be done
+
+the intro should not be basic and too long. it should contain pointers such as
+- in the current age, web applications are widely used around the world
+- can be accessed from almost anywhere
+- like this, the English language is commonly used and taught around world too
+- there are always people who are learning or just want to practice the language
+- in general, people nowadays being more adapted to technology find it easier to learn online than reading books or in person
+- a site dedicated to the basics and practice of the english language helps this situation
+
+
+next is goals of the project
+- 
+
+
+
+
+
+
+
+otchet
+
+intro
+
+Web applications in the current age have become a part of everyday life and they are widely used across the planet. These sites can be accessed from anywhere assuming the user has an internet connection. Similarly, the English language is very widespread around the world, commonly taught to most people at a young age. It is a language that is not only taught for professional use, but also for personal use as well.
+
+The growing number of English learners, from beginners to more experienced people, will always create a demand for some sort of language learning solution. Traditional methods such as textbooks and in-person classes often lack the engagement modern learners seek. With the increasing use of technology in daily life, people are finding online methods more convenient to use when learning.
+
+
+project goal
+
+The task of this project is to develop a web application dedicated to teaching and practicing the English language. The site will offer lessons and activities designed to cater to learners of all abilities, ranging from complete beginners to advanced users looking to practice their skills.
+
+The site will include lessons and activities that cover key aspects of the English language, such as grammar, vocabulary, reading comprehension, and conversational skills. The application will also include a leaderboard system, which will track users' performance in various activities and quizzes throughout the week. At the end of each week, the leaderboard will display top performers, encouraging competition among users and fostering a sense of achievement.
+
+technical tasks
+	- React will be used for building the frontend, including the user interface, components and responsive design.
+	- Node.js will be used for the backend to handle any server-side logic and create the API endpoints required to retrieve data from the database.
+	- User authentication will be completed with JSON Web Tokens.
+	- Express will be the framework used by the project.
+	- A MySQL database will store all of the information relating to lessons, user data and the leaderboard.
+	- ngrok will be used for initial deployment of the project, as it is a cheap alternative for maintaining the site 24/7.
+
+
+current project state
+
+- most of the research has been completed for the project
+- technical research for what framework, languages, database etc. are all completed
+- initial meetings been held with zakazchik - english teacher nikifirova to discuss features to include in the site
+- site should include 2 features, 1 for beginners, then 1 more more advanced users
+- site should have easy to navigate user interface, written in russian with only lessons/activities in English
+
+
+future project plans
+
+- initially plan will be to prototype site ideas and display these to zakazchik
+	need to figure out best features to include in site etc. where things will be positioned 
+- after final prototypes have been developed, database structure will be developed
+	including all tables for lessons, users, admins, etc.
+- after that the development can beging, starting with frontend, completing the design and ui/ux of the site
+- after ui/ux we can begin the functionality, by bringing in backend
+
+
+current project state
+
+Most of the technical research for the project has been completed. This includes the choice of framework, programming languages and database, which have all been finalized. Initial meetings with the client, English teacher Olga Valeryievna Nikifirova, have been completed in which discussions were held to decide the features of the site. As a result of the meetings, the following выводы were done:
+	- The web application will include two main sections: one for beginners and the other for more advanced users.
+	- The web application will primarily be written in Russian, with the English language only
+
+The project has progressed significantly, with most of the necessary research already completed. Technical research regarding the choice of framework, programming languages, and database systems has been finalized. Initial meetings with the client, English teacher Nikifirova, have also been conducted to discuss the essential features and functionality of the site. The planned web application will include two main sections: one targeted at beginners and another designed for more advanced users. Emphasis has been placed on creating a user-friendly interface, written primarily in Russian for easy navigation, with only the lessons and practice activities presented in English.
