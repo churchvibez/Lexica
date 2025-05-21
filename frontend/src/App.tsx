@@ -3,11 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import HomePage from './pages/unauthorized/HomePage.tsx';
 import LoginPage from './pages/unauthorized/LoginPage.tsx';
 import SignupPage from './pages/unauthorized/SignupPage.tsx';
-import DashboardPage from './pages/authorized/DashboardPage.tsx';
+import Modules from './pages/authorized/Modules.tsx';
 import Header from './components/Header/Header.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 import PublicRoute from './components/PublicRoute.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
+import ModuleDetail from './pages/authorized/ModuleDetail.tsx';
 import './design.scss';
 
 function App() {
@@ -46,9 +47,17 @@ function App() {
                 path="/modules" 
                 element={
                   <ProtectedRoute>
-                    <DashboardPage />
+                    <Modules />
                   </ProtectedRoute>
                 } 
+              />
+              <Route
+                path="/modules/:levelSlug/:moduleSequence"
+                element={
+                  <ProtectedRoute>
+                    <ModuleDetail />
+                  </ProtectedRoute>
+                }
               />
               {/* Catch all route - must be last */}
               <Route 

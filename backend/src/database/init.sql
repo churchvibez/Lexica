@@ -1,3 +1,16 @@
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS user_module_progress;
+DROP TABLE IF EXISTS module_quiz_questions;
+DROP TABLE IF EXISTS module_slides;
+DROP TABLE IF EXISTS modules;
+DROP TABLE IF EXISTS module_levels;
+
+-- Create tables
+SOURCE schema.sql;
+
+-- Insert test data
+SOURCE seed.sql;
+
 -- Drop the existing users table if it exists
 DROP TABLE IF EXISTS users;
 

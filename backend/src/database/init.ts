@@ -4,17 +4,33 @@ import path from 'path';
 
 async function initializeDatabase() {
   try {
-    // Read the SQL file
-    const sqlFile = path.join(__dirname, 'init.sql');
-    const sql = fs.readFileSync(sqlFile, 'utf8');
+    // Read the schema file
+    const schemaFile = path.join(__dirname, 'schema.sql');
+    const schemaSql = fs.readFileSync(schemaFile, 'utf8');
+    
+    // Read the seed file
+    const seedFile = path.join(__dirname, 'seed.sql');
+    const seedSql = fs.readFileSync(seedFile, 'utf8');
 
-    // Split the SQL file into individual statements
-    const statements = sql.split(';').filter(statement => statement.trim());
+    // Split the SQL files into individual statements
+    const schemaStatements = schemaSql.split(';').filter(statement => statement.trim());
+    const seedStatements = seedSql.split(';').filter(statement => statement.trim());
 
-    // Execute each statement
-    for (const statement of statements) {
+    // Execute schema statements
+    console.log('Creating tables...');
+    for (const statement of schemaStatements) {
       if (statement.trim()) {
         await pool.query(statement);
+        console.log('Executed schema statement successfully');
+      }
+    }
+
+    // Execute seed statements
+    console.log('Inserting test data...');
+    for (const statement of seedStatements) {
+      if (statement.trim()) {
+        await pool.query(statement);
+        console.log('Executed seed statement successfully');
       }
     }
 
