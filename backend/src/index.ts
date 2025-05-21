@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { DataSource } from 'typeorm';
 import { authController } from './controllers/authController';
+import { authRouter } from './routes/auth';
+import { protectedRouter } from './routes/protected';
+import { authMiddleware } from './middleware/auth';
 
 dotenv.config();
 
@@ -11,9 +14,9 @@ const app = express();
 // CORS configuration
 const corsOptions = {
   origin: 'http://localhost:3000', // Frontend URL
+  credentials: true, // Allow credentials (cookies, authorization headers)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 // middleware
@@ -41,6 +44,13 @@ app.get('/api/test', (req, res) => {
 
 // Routes
 app.post('/api/auth/login', authController.login);
+app.use('/api/auth', authRouter);
+app.use('/api/protected', protectedRouter);
+
+// Protected routes
+app.use('/api/protected', authMiddleware, (req, res) => {
+  res.json({ message: 'This is a protected route' });
+});
 
 const PORT = process.env.PORT || 8080;
 

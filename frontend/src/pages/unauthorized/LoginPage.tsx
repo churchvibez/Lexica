@@ -24,7 +24,7 @@ const LoginPage: React.FC = () => {
       const data = await response.json();
 
       if (data.success) {
-        login(data.username, data.token);
+        login(data.username, data.accessToken, data.refreshToken);
         navigate('/modules');
       } else {
         setError(data.message);
