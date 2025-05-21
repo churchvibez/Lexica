@@ -1,8 +1,8 @@
 import React from 'react';
-import ModuleCard from '../components/Modules/ModuleCard.tsx';
-import '../design.scss';
+import ModuleCard from '../../components/Modules/ModuleCard.tsx';
+import '../../design.scss';
 
-const ModulesPage: React.FC = () => {
+const HomePage: React.FC = () => {
   const modules = [
     {
       title: "Title 1",
@@ -19,8 +19,8 @@ const ModulesPage: React.FC = () => {
   ];
 
   return (
-    <div className="modules-page">
-      <h2>Modules</h2>
+    <div className="home-page">
+      <h2>Welcome to Lexica</h2>
       <div className="modules-grid">
         {modules.map((module, index) => (
           <ModuleCard key={index} title={module.title} description={module.description} />
@@ -31,4 +31,4 @@ const ModulesPage: React.FC = () => {
   );
 };
 
-export default ModulesPage; 
+export default HomePage; 
