@@ -12,6 +12,7 @@ interface AuthContextType {
   username: string | null;
   login: (username: string, accessToken: string, refreshToken: string) => void;
   logout: () => void;
+  authChecked: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,6 +21,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const checkTokenExpiration = (token: string): boolean => {
     try {
@@ -109,6 +111,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       } else {
         console.log('No stored tokens found');
       }
+      setAuthChecked(true);
     };
 
     initializeAuth();
@@ -163,8 +166,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, username, login, logout }}>
-      {children}
+    <AuthContext.Provider value={{ isAuthenticated, username, login, logout, authChecked }}>
+      {authChecked ? children : <div>Loading...</div>}
     </AuthContext.Provider>
   );
 };

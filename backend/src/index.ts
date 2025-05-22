@@ -7,6 +7,7 @@ import { authRouter } from './routes/auth';
 import { protectedRouter } from './routes/protected';
 import { authMiddleware } from './middleware/auth';
 import { moduleRouter } from './routes/modules';
+import usersRouter from './routes/users';
 
 dotenv.config();
 
@@ -48,6 +49,7 @@ app.post('/api/auth/login', authController.login);
 app.use('/api/auth', authRouter);
 app.use('/api/protected', protectedRouter);
 app.use('/api', moduleRouter);
+app.use('/api/users', usersRouter);
 
 // Protected routes
 app.use('/api/protected', authMiddleware, (req, res) => {
