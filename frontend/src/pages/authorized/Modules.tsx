@@ -85,7 +85,6 @@ const Modules: React.FC = () => {
 
   return (
     <div className="modules-container">
-      <h2>Welcome, {username}!</h2>
       <h1>Modules</h1>
       {
         moduleData.map(level => (
