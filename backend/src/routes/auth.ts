@@ -23,4 +23,10 @@ router.post('/logout', async (req, res) => {
   res.json({ success });
 });
 
+router.post('/signup', async (req, res) => {
+  const { username, password } = req.body;
+  const result = await authService.signup(username, password);
+  res.json(result);
+});
+
 export const authRouter = router; 

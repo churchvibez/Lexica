@@ -80,7 +80,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('username');
     setIsAuthenticated(false);
     setUsername(null);
-    window.location.href = '/login';
+    window.location.href = '/';
   };
 
   useEffect(() => {

@@ -4,75 +4,76 @@ import '../../design.scss';
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    confirmPassword: ''
-  });
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: value
-    }));
-  };
-
-  const handleSignup = () => {
-    // TODO: Implement signup functionality
-    console.log('Signup attempt:', formData);
-  };
-
-  const handleLoginClick = () => {
-    navigate('/login');
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    if (!username || !password || !confirmPassword) {
+      setError('Please fill in all fields.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    try {
+      const response = await fetch('http://localhost:8080/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setSuccess('Account created! You can now log in.');
+        setTimeout(() => navigate('/login'), 1200);
+      } else {
+        setError(data.message || 'Signup failed');
+      }
+    } catch (err) {
+      setError('An error occurred during signup');
+    }
   };
 
   return (
-    <div className="signup-page">
-      <div className="signup-container">
-        <h2>Create Your Account</h2>
-        <div className="signup-form">
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="Choose a username"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="confirmPassword">Confirm Password</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-            />
-          </div>
-          <div className="button-group">
-            <button className="signup-button" onClick={handleSignup}>
-              Create Account
-            </button>
-          </div>
-          <div className="form-footer">
-            <p>Already have an account? <span className="link" onClick={handleLoginClick}>Login</span></p>
-          </div>
+    <div className="auth-bg">
+      <div className="auth-card">
+        <div className="auth-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Lexica</div>
+        {/* <h2 className="auth-title">Sign Up</h2> */}
+        <form className="auth-form" onSubmit={handleSignup}>
+          <input
+            className="auth-input"
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+          />
+          <input
+            className="auth-input"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+          <input
+            className="auth-input"
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+          />
+          {error && <div className="auth-error">{error}</div>}
+          {success && <div className="auth-success">{success}</div>}
+          <button className="auth-btn" type="submit">Sign Up</button>
+        </form>
+        <div className="auth-footer">
+          Already have an account?{' '}
+          <span className="auth-link" onClick={() => navigate('/login')}>Login</span>
         </div>
       </div>
     </div>

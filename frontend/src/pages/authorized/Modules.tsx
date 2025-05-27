@@ -63,6 +63,7 @@ const Modules: React.FC = () => {
   const [moduleData, setModuleData] = useState<ModuleLevel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [completed, setCompleted] = useState<{ [key: string]: boolean }>({}); // key: module.id
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -103,7 +104,9 @@ const Modules: React.FC = () => {
     }
   }, [isAuthenticated]);
 
-  const handleModuleClick = (module: Module) => {
+  const handleModuleClick = (module: Module, idx: number, modules: Module[]) => {
+    // Mark as completed for demo
+    setCompleted(prev => ({ ...prev, [module.id]: true }));
     navigate(`/modules/${module.levelSlug}/${module.sequence}`);
   };
 
@@ -123,15 +126,21 @@ const Modules: React.FC = () => {
           <div key={level.id} className="module-level-section">
             <h3>{level.name}</h3>
             <div className="modules-grid">
-              {level.modules.map(module => (
-                <div
-                  key={module.id}
-                  className="module-card"
-                  onClick={() => handleModuleClick(module)}
-                >
-                  <h4>{module.title}</h4>
-                </div>
-              ))}
+              {level.modules.map((module, idx) => {
+                // Sequential unlock logic
+                const isFirst = idx === 0;
+                const prevCompleted = idx > 0 ? completed[level.modules[idx - 1].id] : true;
+                const isUnlocked = isFirst || prevCompleted;
+                return (
+                  <div
+                    key={module.id}
+                    className={`module-card${isUnlocked ? '' : ' locked'}`}
+                    onClick={isUnlocked ? () => handleModuleClick(module, idx, level.modules) : undefined}
+                  >
+                    <h4>{module.title}</h4>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))

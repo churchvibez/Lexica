@@ -5,7 +5,6 @@ import LoginPage from './pages/unauthorized/LoginPage.tsx';
 import SignupPage from './pages/unauthorized/SignupPage.tsx';
 import Modules from './pages/authorized/Modules.tsx';
 import SideNav from './components/SideNav/SideNav.tsx';
-import Header from './components/Header/Header.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 import PublicRoute from './components/PublicRoute.tsx';
 import { AuthProvider, useAuth } from './context/AuthContext.tsx';
@@ -24,7 +23,7 @@ const AppContent = () => {
 
   return (
     <div className="App">
-      {isAuthenticated ? <SideNav /> : <Header />}
+      {isAuthenticated ? <SideNav /> : null}
       <main className="main-content">
         <Routes>
           <Route 
@@ -91,6 +90,8 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
+          {/* Catch-all route to redirect unknown URLs to the home page */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
     </div>

@@ -160,5 +160,28 @@ export const authService = {
       console.error('Logout error:', error);
       return false;
     }
+  },
+
+  async signup(username: string, password: string): Promise<{ success: boolean; message: string }> {
+    if (!username || !password) {
+      return { success: false, message: 'Username and password required' };
+    }
+    if (username.length < 3 || username.length > 32) {
+      return { success: false, message: 'Username must be 3-32 characters' };
+    }
+    if (password.length < 6) {
+      return { success: false, message: 'Password must be at least 6 characters' };
+    }
+    try {
+      const [existing] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
+      if (Array.isArray(existing) && existing.length > 0) {
+        return { success: false, message: 'Username already taken' };
+      }
+      const hashed = await bcrypt.hash(password, 10);
+      await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashed]);
+      return { success: true, message: 'Account created' };
+    } catch (err) {
+      return { success: false, message: 'Signup failed' };
+    }
   }
 }; 

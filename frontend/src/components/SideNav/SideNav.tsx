@@ -21,8 +21,8 @@ const SideNav: React.FC = () => {
   };
 
   return (
-    <div className="side-nav">
-      <div className="logo" onClick={handleLogoClick}>
+    <div className="side-nav dark-side-nav">
+      <div className="logo" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
         <h1>Lexica</h1>
       </div>
       <div className="side-nav-links-group">

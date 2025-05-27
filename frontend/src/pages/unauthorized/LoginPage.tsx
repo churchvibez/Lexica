@@ -10,7 +10,13 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = async () => {
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    if (!username || !password) {
+      setError('Please enter both username and password.');
+      return;
+    }
     try {
       const response = await fetch('http://localhost:8080/api/auth/login', {
         method: 'POST',
@@ -20,58 +26,44 @@ const LoginPage: React.FC = () => {
         credentials: 'include',
         body: JSON.stringify({ username, password }),
       });
-
       const data = await response.json();
-
       if (data.success) {
         login(data.username, data.accessToken, data.refreshToken);
         navigate('/modules');
       } else {
-        setError(data.message);
+        setError(data.message || 'Login failed');
       }
     } catch (error) {
       setError('An error occurred during login');
     }
   };
 
-  const handleSignupClick = () => {
-    navigate('/signup');
-  };
-
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <h2>Welcome to Lexica</h2>
-        <div className="login-form">
-          {error && <div className="error-message">{error}</div>}
-          <div className="form-group">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter your username"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-            />
-          </div>
-          <div className="button-group">
-            <button className="login-button" onClick={handleLogin}>
-              Login
-            </button>
-          </div>
-          <div className="form-footer">
-            <p>Don't have an account? <span className="link" onClick={handleSignupClick}>Sign up</span></p>
-          </div>
+    <div className="auth-bg">
+      <div className="auth-card">
+        <div className="auth-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Lexica</div>
+        {/* <h2 className="auth-title">Login</h2> */}
+        <form className="auth-form" onSubmit={handleLogin}>
+          <input
+            className="auth-input"
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+          />
+          <input
+            className="auth-input"
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+          {error && <div className="auth-error">{error}</div>}
+          <button className="auth-btn" type="submit">Login</button>
+        </form>
+        <div className="auth-footer">
+          Don't have an account?{' '}
+          <span className="auth-link" onClick={() => navigate('/signup')}>Sign Up</span>
         </div>
       </div>
     </div>
