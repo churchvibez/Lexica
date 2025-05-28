@@ -34,7 +34,7 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="homepage-root">
+    <div className="unauth-content">
       <div className="homepage-header-center">
         <div className="homepage-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Lexica</div>
         <div className="homepage-header-buttons">

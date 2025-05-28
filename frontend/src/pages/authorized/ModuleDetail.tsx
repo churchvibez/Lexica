@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.tsx';
 
@@ -37,6 +37,10 @@ const ModuleDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizScore, setQuizScore] = useState(0);
+  const [learningDelay, setLearningDelay] = useState(0); // seconds left
+  const learningTimer = useRef<any>(null);
+  const [showQuizConfirm, setShowQuizConfirm] = useState(false);
+  const [showQuizFinishConfirm, setShowQuizFinishConfirm] = useState(false);
 
   useEffect(() => {
     const fetchModuleDetail = async () => {
@@ -62,14 +66,34 @@ const ModuleDetail: React.FC = () => {
         console.log('Module data received:', data);
         setModuleData(data.data);
 
-        // Select exactly 5 random quiz questions
+        // Select exactly 5 quiz questions with a mix of input and multiple choice
         if (data.data.quizQuestions && data.data.quizQuestions.length >= 5) {
-          const shuffledQuestions = data.data.quizQuestions.sort(() => 0.5 - Math.random());
-          const selectedQuestions = shuffledQuestions.slice(0, 5);
-          setQuizAnswers(selectedQuestions.reduce((acc, question) => ({
+          const inputQs = data.data.quizQuestions.filter((q: any) => q.question_type === 'input');
+          const mcQs = data.data.quizQuestions.filter((q: any) => q.question_type === 'multiple_choice');
+          let selected: any[] = [];
+          if (inputQs.length >= 3 && mcQs.length >= 2) {
+            // 3 input, 2 multiple choice
+            selected = [
+              ...inputQs.sort(() => 0.5 - Math.random()).slice(0, 3),
+              ...mcQs.sort(() => 0.5 - Math.random()).slice(0, 2),
+            ];
+          } else if (inputQs.length >= 2 && mcQs.length >= 3) {
+            // 2 input, 3 multiple choice
+            selected = [
+              ...inputQs.sort(() => 0.5 - Math.random()).slice(0, 2),
+              ...mcQs.sort(() => 0.5 - Math.random()).slice(0, 3),
+            ];
+          } else {
+            // fallback: just pick 5 random
+            selected = data.data.quizQuestions.sort(() => 0.5 - Math.random()).slice(0, 5);
+          }
+          // Shuffle the selected questions
+          selected = selected.sort(() => 0.5 - Math.random());
+          setQuizAnswers(selected.reduce((acc: any, question: any) => ({
             ...acc,
             [question.id.toString()]: ''
           }), {}));
+          data.data.quizQuestions = selected;
         } else {
           console.warn('Not enough quiz questions available.', data.data.quizQuestions);
           setQuizAnswers({});
@@ -116,13 +140,54 @@ const ModuleDetail: React.FC = () => {
   // Review is now a single step after the quiz
   const reviewSlideIndex = hasQuiz ? totalSlides + 1 : totalSlides;
 
-  const isQuizSlide = currentSlideIndex === quizSlideIndex;
-  const isReviewSlide = currentSlideIndex === reviewSlideIndex;
+  useEffect(() => {
+    // Calculate local slide type for timer
+    const localIsQuizSlide = currentSlideIndex === quizSlideIndex;
+    const localIsReviewSlide = currentSlideIndex === reviewSlideIndex;
+    // Reset delay on slide change
+    if (!localIsQuizSlide && !localIsReviewSlide) {
+      setLearningDelay(10);
+      if (learningTimer.current) clearInterval(learningTimer.current);
+      learningTimer.current = setInterval(() => {
+        setLearningDelay(prev => {
+          if (prev <= 1) {
+            if (learningTimer.current) clearInterval(learningTimer.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setLearningDelay(0);
+      if (learningTimer.current) clearInterval(learningTimer.current);
+    }
+    return () => {
+      if (learningTimer.current) clearInterval(learningTimer.current);
+    };
+  // eslint-disable-next-line
+  }, [currentSlideIndex, quizSlideIndex, reviewSlideIndex]);
 
   // Calculate total number of steps (slides + quiz + review)
   const totalSteps = totalSlides + (hasQuiz ? 1 : 0) + (hasQuiz ? 1 : 0); // slides + quiz + review
 
+  // Determine if Next button should be disabled
+  // Move these variable declarations here to avoid linter errors
+  const isQuizSlide = currentSlideIndex === quizSlideIndex;
+  const isReviewSlide = currentSlideIndex === reviewSlideIndex;
+  const isLearningSlide = !isQuizSlide && !isReviewSlide;
+  const isNextDisabled = (isLearningSlide && learningDelay > 0) || (isQuizSlide && Object.entries(quizAnswers).some(([_, answer]) => !answer.trim()));
+
   const handleNext = () => {
+    // If on the last learning slide, show quiz confirm dialog
+    if (currentSlideIndex === quizSlideIndex - 1) {
+      setShowQuizConfirm(true);
+      return;
+    }
+    // If on quiz slide, show finish confirmation dialog
+    if (isQuizSlide) {
+      setShowQuizFinishConfirm(true);
+      return;
+    }
     if (currentSlideIndex < totalSteps - 1) {
       // If on quiz slide, calculate score when moving to review
       if (isQuizSlide) {
@@ -184,6 +249,33 @@ const ModuleDetail: React.FC = () => {
     setShowExitConfirm(false);
   };
 
+  const confirmQuizStart = () => {
+    setShowQuizConfirm(false);
+    setCurrentSlideIndex(prevIndex => prevIndex + 1);
+  };
+
+  const cancelQuizStart = () => {
+    setShowQuizConfirm(false);
+  };
+
+  const confirmQuizFinish = () => {
+    setShowQuizFinishConfirm(false);
+    // Calculate score and go to review
+    let correctAnswers = 0;
+    Object.entries(quizAnswers).forEach(([questionId, answer]) => {
+      const question = moduleData?.quizQuestions.find(q => q.id.toString() === questionId);
+      if (question && answer.toLowerCase() === question.correct_answer.toLowerCase()) {
+        correctAnswers++;
+      }
+    });
+    setQuizScore(correctAnswers);
+    setCurrentSlideIndex(prevIndex => prevIndex + 1);
+  };
+
+  const cancelQuizFinish = () => {
+    setShowQuizFinishConfirm(false);
+  };
+
   if (loading) {
     return <div className="module-detail-container">Loading module...</div>;
   }
@@ -202,13 +294,15 @@ const ModuleDetail: React.FC = () => {
         <div className="module-review-slide">
           <h2>Quiz Review</h2>
           <p className="quiz-score">You got {quizScore} out of 5 questions correct.</p>
-          {Object.entries(quizAnswers).map(([questionId, answer]) => {
+          <hr className="quiz-review-separator" />
+          {Object.entries(quizAnswers).map(([questionId, answer], idx) => {
             const question = moduleData.quizQuestions.find(q => q.id.toString() === questionId);
             if (!question) return null;
-            const isCorrect = answer.toLowerCase() === question.correct_answer.toLowerCase();
-            
+            const isCorrect = answer.trim().toLowerCase() === question.correct_answer.trim().toLowerCase();
             return (
-              <div key={questionId} className={`quiz-review-question ${isCorrect ? 'correct' : 'incorrect'}`}>
+              <div key={questionId} className={`quiz-review-question ${isCorrect ? 'correct' : 'incorrect'}`}> 
+                <span className="question-number">{idx + 1}.</span>
+                <span className={`result-label ${isCorrect ? 'correct' : 'incorrect'}`}>{isCorrect ? 'Correct' : 'Incorrect'}</span>
                 <p><strong>Question:</strong> {question.question_text}</p>
                 <p><strong>Your Answer:</strong> {answer}</p>
                 <p><strong>Correct Answer:</strong> {question.correct_answer}</p>
@@ -270,13 +364,10 @@ const ModuleDetail: React.FC = () => {
     return null;
   };
 
-  // Determine if Next button should be disabled
-  const isNextDisabled = isQuizSlide && Object.entries(quizAnswers).some(([_, answer]) => !answer.trim());
-
   return (
     <div className="module-detail-container">
       <div className="module-header">
-        <h1>{moduleData.module.title}</h1>
+        <h1 className="module-learning-title">{moduleData.module.title}</h1>
         {!isReviewSlide && (
           <button className="exit-button" onClick={handleExit}>✕</button>
         )}
@@ -294,6 +385,37 @@ const ModuleDetail: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Quiz start confirmation dialog */}
+      {showQuizConfirm && (
+        <div className="exit-confirm-overlay">
+          <div className="exit-confirm-dialog">
+            <h3>Ready for the Quiz?</h3>
+            <p>Are you sure you want to start the quiz? You won't be able to go back to the learning slides.</p>
+            <div className="exit-confirm-buttons">
+              <button onClick={confirmQuizStart} className="confirm-exit">Yes, Start Quiz</button>
+              <button onClick={cancelQuizStart} className="cancel-exit">No, Keep Learning</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quiz finish confirmation dialog */}
+      {showQuizFinishConfirm && (
+        <div className="exit-confirm-overlay">
+          <div className="exit-confirm-dialog">
+            <h3>Are you sure you want to finish the test?</h3>
+            <div className="exit-confirm-buttons">
+              <button onClick={confirmQuizFinish} className="confirm-exit">Yes, Finish</button>
+              <button onClick={cancelQuizFinish} className="cancel-exit">No, Go Back</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="module-content-area">
+        {renderSlide()}
+      </div>
 
       <div className="slide-tracker">
         {moduleData.slides.map((_, index) => (
@@ -326,21 +448,34 @@ const ModuleDetail: React.FC = () => {
         </div>
       </div>
 
-      <div className="module-content-area">
-        {renderSlide()}
-      </div>
-
       {/* Navigation Arrows */}
       <div className="navigation-arrows">
-        {currentSlideIndex > 0 && !isReviewSlide && (
-          <button onClick={handlePrev}>Previous</button>
+        {/* Only show Previous if not on quiz or review */}
+        {!(isQuizSlide || isReviewSlide) && (
+          <button
+            className="module-nav-btn prev-btn"
+            onClick={handlePrev}
+            disabled={currentSlideIndex === 0}
+          >
+            Previous
+          </button>
         )}
-        {currentSlideIndex < totalSteps - 1 && (
-          <button onClick={handleNext} disabled={isNextDisabled}>Next</button>
-        )}
-        {isReviewSlide && (
-          <button onClick={handleFinishModule}>Finish Module</button>
-        )}
+        <div className={`learning-delay-indicator${isLearningSlide && learningDelay > 0 ? '' : ' inactive'}`}>
+          {isLearningSlide && learningDelay > 0 && (
+            <div className="learning-spinner">
+              <svg viewBox="0 0 40 40" width="40" height="40">
+                <circle cx="20" cy="20" r="18" fill="none" stroke="#539bf5" strokeWidth="4" strokeDasharray={Math.PI * 2 * 18} strokeDashoffset={(1-learningDelay/10)*Math.PI*2*18} />
+              </svg>
+            </div>
+          )}
+        </div>
+        <button
+          className={isReviewSlide ? "finish-module-btn" : "module-nav-btn next-btn"}
+          onClick={isReviewSlide ? handleFinishModule : handleNext}
+          disabled={isReviewSlide ? false : isNextDisabled}
+        >
+          {isReviewSlide ? 'Finish Module' : 'Next'}
+        </button>
       </div>
     </div>
   );

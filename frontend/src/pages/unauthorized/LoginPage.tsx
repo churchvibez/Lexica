@@ -39,7 +39,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="auth-bg">
+    <div className="unauth-content auth-bg">
       <div className="auth-card">
         <div className="auth-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>Lexica</div>
         {/* <h2 className="auth-title">Login</h2> */}
