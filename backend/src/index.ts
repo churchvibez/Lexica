@@ -32,11 +32,11 @@ app.use(express.json());
 // db connection
 export const AppDataSource = new DataSource({
   type: "mysql",
-  host: process.env.MYSQLHOST,
-  port: parseInt(process.env.MYSQLPORT || "3306"),
-  username: process.env.MYSQLUSER,
-  password: process.env.MYSQLPASSWORD,
-  database: process.env.MYSQLDATABASE,
+  host: process.env.MYSQLHOST || process.env.DB_HOST || "localhost",
+  port: parseInt(process.env.MYSQLPORT || process.env.DB_PORT || "3306"),
+  username: process.env.MYSQLUSER || process.env.DB_USER || "root",
+  password: process.env.MYSQLPASSWORD || process.env.DB_PASSWORD || "",
+  database: process.env.MYSQLDATABASE || process.env.DB_NAME || "lexica",
   synchronize: true,
   logging: true,
   entities: ["src/entities/**/*.ts"],
