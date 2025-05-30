@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.tsx';
 import bcrypt from 'bcryptjs';
 import '../../design.scss';
-import { API_BASE_URL } from '../../apiConfig';
+import { API_BASE_URL } from '../../apiConfig.ts';
 
 interface User {
   id: number;

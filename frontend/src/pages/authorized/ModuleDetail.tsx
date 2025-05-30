@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.tsx';
-import { API_BASE_URL } from '../../apiConfig';
+import { API_BASE_URL } from '../../apiConfig.ts';
 
 interface Slide {
   id: number;

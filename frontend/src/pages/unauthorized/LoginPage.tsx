@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.tsx';
-import { API_BASE_URL } from '../../apiConfig';
+import { API_BASE_URL } from '../../apiConfig.ts';
 import '../../design.scss';
 
 const LoginPage: React.FC = () => {

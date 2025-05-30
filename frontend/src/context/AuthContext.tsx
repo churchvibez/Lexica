@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { API_BASE_URL } from '../apiConfig';
+import { API_BASE_URL } from '../apiConfig.ts';
 
 interface TokenPayload {
   username: string;

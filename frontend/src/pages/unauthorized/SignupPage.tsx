@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../design.scss';
-import { API_BASE_URL } from '../../apiConfig';
+import { API_BASE_URL } from '../../apiConfig.ts';
 
 const SignupPage: React.FC = () => {
   const navigate = useNavigate();
