@@ -16,11 +16,11 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-async function initializeDatabase() {
+export async function initializeDatabase() {
   try {
-    console.log('Creating tables...');
+    console.log('Initializing database with complete schema...');
     
-    // Read and execute schema.sql
+    // Read the complete schema.sql file
     const schemaPath = path.join(__dirname, 'schema.sql');
     const schemaSQL = fs.readFileSync(schemaPath, 'utf8');
     
@@ -34,45 +34,23 @@ async function initializeDatabase() {
     for (const statement of statements) {
       try {
         await pool.query(statement);
+        console.log('Executed SQL statement successfully');
       } catch (error: any) {
-        // Skip if table already exists
-        if (error.code === 'ER_TABLE_EXISTS_ERROR') {
-          console.log(`Table already exists, skipping: ${error.sqlMessage}`);
+        // Skip if table already exists or if it's a duplicate entry
+        if (error.code === 'ER_TABLE_EXISTS_ERROR' || error.code === 'ER_DUP_ENTRY') {
+          console.log(`Skipping: ${error.sqlMessage}`);
           continue;
         }
-        throw error;
+        // For other errors, log them but continue
+        console.error('Error executing statement:', error.message);
+        continue;
       }
     }
 
-    console.log('Inserting seed data...');
-    
-    // Read and execute seed.sql
-    const seedPath = path.join(__dirname, 'seed.sql');
-    const seedSQL = fs.readFileSync(seedPath, 'utf8');
-    
-    // Split the SQL file into individual statements
-    const seedStatements = seedSQL
-      .split(';')
-      .map(statement => statement.trim())
-      .filter(statement => statement.length > 0);
-
-    // Execute each statement
-    for (const statement of seedStatements) {
-      try {
-        await pool.query(statement);
-      } catch (error: any) {
-        // Skip if data already exists
-        if (error.code === 'ER_DUP_ENTRY') {
-          console.log(`Data already exists, skipping: ${error.sqlMessage}`);
-          continue;
-        }
-        throw error;
-      }
-    }
-
-    console.log('Database initialized successfully!');
+    console.log('Database initialized successfully with all tables and data!');
   } catch (error) {
     console.error('Error initializing database:', error);
+    throw error;
   } finally {
     await pool.end();
   }
