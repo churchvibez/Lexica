@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.tsx';
+import { API_BASE_URL } from '../../apiConfig';
 import '../../design.scss';
 
 const LoginPage: React.FC = () => {
@@ -18,7 +19,7 @@ const LoginPage: React.FC = () => {
       return;
     }
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
