@@ -175,6 +175,7 @@ export const authService = {
       await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashed]);
       return { success: true, message: 'Account created' };
     } catch (err) {
+      console.error('Signup error:', err);
       return { success: false, message: 'Signup failed' };
     }
   }
