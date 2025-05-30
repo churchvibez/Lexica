@@ -166,12 +166,6 @@ export const authService = {
     if (!username || !password) {
       return { success: false, message: 'Username and password required' };
     }
-    if (username.length < 3 || username.length > 32) {
-      return { success: false, message: 'Username must be 3-32 characters' };
-    }
-    if (password.length < 6) {
-      return { success: false, message: 'Password must be at least 6 characters' };
-    }
     try {
       const [existing] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
       if (Array.isArray(existing) && existing.length > 0) {
