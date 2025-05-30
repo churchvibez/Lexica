@@ -12,6 +12,7 @@ import ModuleDetail from './pages/authorized/ModuleDetail.tsx';
 import TestsPage from './pages/authorized/TestsPage.tsx';
 import LeaderboardPage from './pages/authorized/LeaderboardPage.tsx';
 import ProfilePage from './pages/authorized/ProfilePage.tsx';
+import TestDetail from './pages/authorized/TestDetail.tsx';
 import './design.scss';
 
 // Placeholder components for new pages
@@ -83,10 +84,18 @@ const AppContent = () => {
             } 
           />
           <Route
-            path="/modules/:levelSlug/:moduleSequence"
+            path="/modules/:levelSlug/:moduleOrderId"
             element={
               <ProtectedRoute>
                 <ModuleDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tests/:testId"
+            element={
+              <ProtectedRoute>
+                <TestDetail />
               </ProtectedRoute>
             }
           />

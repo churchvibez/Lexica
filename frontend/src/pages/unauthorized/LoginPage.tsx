@@ -14,7 +14,7 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setError('');
     if (!username || !password) {
-      setError('Please enter both username and password.');
+      setError('Пожалуйста, введите имя пользователя и пароль.');
       return;
     }
     try {
@@ -31,10 +31,10 @@ const LoginPage: React.FC = () => {
         login(data.username, data.accessToken, data.refreshToken);
         navigate('/modules');
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.message || 'Ошибка входа');
       }
     } catch (error) {
-      setError('An error occurred during login');
+      setError('Произошла ошибка при входе');
     }
   };
 
@@ -47,23 +47,23 @@ const LoginPage: React.FC = () => {
           <input
             className="auth-input"
             type="text"
-            placeholder="Username"
+            placeholder="Имя пользователя"
             value={username}
             onChange={e => setUsername(e.target.value)}
           />
           <input
             className="auth-input"
             type="password"
-            placeholder="Password"
+            placeholder="Пароль"
             value={password}
             onChange={e => setPassword(e.target.value)}
           />
           {error && <div className="auth-error">{error}</div>}
-          <button className="auth-btn" type="submit">Login</button>
+          <button className="auth-btn" type="submit">Войти</button>
         </form>
         <div className="auth-footer">
-          Don't have an account?{' '}
-          <span className="auth-link" onClick={() => navigate('/signup')}>Sign Up</span>
+          Нет аккаунта?{' '}
+          <span className="auth-link" onClick={() => navigate('/signup')}>Зарегистрироваться</span>
         </div>
       </div>
     </div>

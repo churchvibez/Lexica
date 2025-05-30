@@ -37,11 +37,11 @@ const Header: React.FC = () => {
         <nav className="nav-menu">
           {isAuthenticated ? (
             <button className="signout-button" onClick={handleSignOut}>
-              Sign Out
+              Выйти
             </button>
           ) : (
             <button className="login-button" onClick={handleLoginClick}>
-              Login
+              Войти
             </button>
           )}
         </nav>

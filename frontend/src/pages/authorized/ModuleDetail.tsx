@@ -20,13 +20,13 @@ interface QuizQuestion {
 }
 
 interface ModuleData {
-  module: { id: number; title: string; };
+  module: { id: number; title: string; level_id: number; points: number };
   slides: Slide[];
   quizQuestions: QuizQuestion[];
 }
 
 const ModuleDetail: React.FC = () => {
-  const { levelSlug, moduleSequence } = useParams<{ levelSlug: string; moduleSequence: string }>();
+  const { levelSlug, moduleOrderId } = useParams<{ levelSlug: string; moduleOrderId: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [moduleData, setModuleData] = useState<ModuleData | null>(null);
@@ -34,6 +34,7 @@ const ModuleDetail: React.FC = () => {
   const [quizAnswers, setQuizAnswers] = useState<{ [key: string]: string }>({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [pendingReload, setPendingReload] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quizScore, setQuizScore] = useState(0);
@@ -41,6 +42,8 @@ const ModuleDetail: React.FC = () => {
   const learningTimer = useRef<any>(null);
   const [showQuizConfirm, setShowQuizConfirm] = useState(false);
   const [showQuizFinishConfirm, setShowQuizFinishConfirm] = useState(false);
+  const [xpAwarded, setXpAwarded] = useState(false);
+  const [awardError, setAwardError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchModuleDetail = async () => {
@@ -51,12 +54,16 @@ const ModuleDetail: React.FC = () => {
           throw new Error('No access token found');
         }
 
-        const response = await fetch(`http://localhost:8080/api/modules/${levelSlug}/${moduleSequence}`, {
+        const response = await fetch(`http://localhost:8080/api/modules/${levelSlug}/${moduleOrderId}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
           },
         });
 
+        if (response.status === 403) {
+          navigate('/modules', { replace: true });
+          return;
+        }
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.message || 'Failed to fetch module detail');
@@ -107,10 +114,10 @@ const ModuleDetail: React.FC = () => {
       }
     };
 
-    if (isAuthenticated && levelSlug && moduleSequence) {
+    if (isAuthenticated && levelSlug && moduleOrderId) {
       fetchModuleDetail();
     }
-  }, [isAuthenticated, levelSlug, moduleSequence]);
+  }, [isAuthenticated, levelSlug, moduleOrderId]);
 
   useEffect(() => {
     // Add event listener for browser back button
@@ -133,6 +140,26 @@ const ModuleDetail: React.FC = () => {
     };
   }, []);
 
+  // On mount, check for reload in the middle of a quiz
+  useEffect(() => {
+    const isQuizOrModule = !isReviewSlide;
+    if (isQuizOrModule) {
+      if (sessionStorage.getItem('inModuleQuiz') === 'true') {
+        setShowExitConfirm(true);
+        setPendingReload(true);
+      } else {
+        sessionStorage.setItem('inModuleQuiz', 'true');
+      }
+    } else {
+      sessionStorage.removeItem('inModuleQuiz');
+    }
+    // Cleanup on unmount
+    return () => {
+      sessionStorage.removeItem('inModuleQuiz');
+    };
+  // eslint-disable-next-line
+  }, []);
+
   const totalSlides = moduleData?.slides.length || 0;
   const hasQuiz = Object.keys(quizAnswers).length > 0;
   // Quiz is now a single step after all slides
@@ -141,26 +168,9 @@ const ModuleDetail: React.FC = () => {
   const reviewSlideIndex = hasQuiz ? totalSlides + 1 : totalSlides;
 
   useEffect(() => {
-    // Calculate local slide type for timer
-    const localIsQuizSlide = currentSlideIndex === quizSlideIndex;
-    const localIsReviewSlide = currentSlideIndex === reviewSlideIndex;
-    // Reset delay on slide change
-    if (!localIsQuizSlide && !localIsReviewSlide) {
-      setLearningDelay(10);
-      if (learningTimer.current) clearInterval(learningTimer.current);
-      learningTimer.current = setInterval(() => {
-        setLearningDelay(prev => {
-          if (prev <= 1) {
-            if (learningTimer.current) clearInterval(learningTimer.current);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      setLearningDelay(0);
-      if (learningTimer.current) clearInterval(learningTimer.current);
-    }
+    // Remove time delay for testing: always set learningDelay to 0
+    setLearningDelay(0);
+    if (learningTimer.current) clearInterval(learningTimer.current);
     return () => {
       if (learningTimer.current) clearInterval(learningTimer.current);
     };
@@ -216,9 +226,7 @@ const ModuleDetail: React.FC = () => {
   };
 
    const handleFinishModule = () => {
-     // TODO: Implement module completion logic (awarding points, marking completed)
-     alert('Module Finished! (Completion logic to be implemented)');
-     navigate('/modules'); // Redirect back to modules page
+     navigate('/modules');
    };
 
   const handleAnswerChange = (questionId: string, answer: string) => {
@@ -242,11 +250,15 @@ const ModuleDetail: React.FC = () => {
   };
 
   const confirmExit = () => {
+    setShowExitConfirm(false);
     navigate('/modules');
   };
 
   const cancelExit = () => {
     setShowExitConfirm(false);
+    if (pendingReload) {
+      navigate('/modules'); // If reload, always redirect
+    }
   };
 
   const confirmQuizStart = () => {
@@ -276,12 +288,60 @@ const ModuleDetail: React.FC = () => {
     setShowQuizFinishConfirm(false);
   };
 
+  useEffect(() => {
+    // When entering the review slide for the first time, award XP
+    if (isReviewSlide && !xpAwarded && moduleData) {
+      const awardXP = async () => {
+        try {
+          const accessToken = localStorage.getItem('accessToken');
+          if (!accessToken) return;
+          const res = await fetch(`http://localhost:8080/api/modules/${moduleData.module.id}/complete`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify({ correctAnswers: quizScore }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            setAwardError(data.message || 'Failed to award XP');
+          } else {
+            setXpAwarded(true);
+            setAwardError(null);
+            // Optionally: update user XP in UI here
+          }
+        } catch (err) {
+          setAwardError('Failed to award XP');
+        }
+      };
+      awardXP();
+    }
+  }, [isReviewSlide, xpAwarded, moduleData, quizScore]);
+
+  useEffect(() => {
+    if (!isReviewSlide) {
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        e.returnValue = '';
+      };
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      return () => {
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
+    }
+  }, [isReviewSlide]);
+
   if (loading) {
     return <div className="module-detail-container">Loading module...</div>;
   }
 
+  if (error === 'Module not unlocked yet') {
+    navigate('/modules', { replace: true });
+    return null;
+  }
   if (error) {
-    return <div className="module-detail-container">Error: {error}</div>;
+    return null;
   }
 
   if (!moduleData) {
@@ -290,6 +350,15 @@ const ModuleDetail: React.FC = () => {
 
   const renderSlide = () => {
     if (isReviewSlide) {
+      // Calculate XP breakdown
+      let baseXP = 0;
+      if (moduleData.module) {
+        if (moduleData.module.level_id === 1) baseXP = 5;
+        else if (moduleData.module.level_id === 2) baseXP = 10;
+        else if (moduleData.module.level_id === 3) baseXP = 20;
+      }
+      const correctXP = quizScore; // 1 XP per correct answer
+      const totalXP = baseXP + correctXP;
       return (
         <div className="module-review-slide">
           <h2>Quiz Review</h2>
@@ -309,6 +378,14 @@ const ModuleDetail: React.FC = () => {
               </div>
             );
           })}
+          <div className="xp-breakdown" style={{marginTop: 24, textAlign: 'center'}}>
+            <h4>XP Gained</h4>
+            <p>Module completion: <strong>+{baseXP} XP</strong></p>
+            <p>Correct answers XP: <strong>+{correctXP} XP</strong></p>
+            <p>Total XP: <strong>+{totalXP} XP</strong></p>
+            {awardError && <p style={{ color: 'red' }}>Error awarding XP: {awardError}</p>}
+            {xpAwarded && <p style={{ color: 'green' }}>XP awarded!</p>}
+          </div>
         </div>
       );
     } else if (isQuizSlide) {
@@ -449,7 +526,7 @@ const ModuleDetail: React.FC = () => {
       </div>
 
       {/* Navigation Arrows */}
-      <div className="navigation-arrows">
+      <div className={`navigation-arrows${(isQuizSlide || isReviewSlide) ? ' center-nav' : ''}`}>
         {/* Only show Previous if not on quiz or review */}
         {!(isQuizSlide || isReviewSlide) && (
           <button
@@ -460,15 +537,6 @@ const ModuleDetail: React.FC = () => {
             Previous
           </button>
         )}
-        <div className={`learning-delay-indicator${isLearningSlide && learningDelay > 0 ? '' : ' inactive'}`}>
-          {isLearningSlide && learningDelay > 0 && (
-            <div className="learning-spinner">
-              <svg viewBox="0 0 40 40" width="40" height="40">
-                <circle cx="20" cy="20" r="18" fill="none" stroke="#539bf5" strokeWidth="4" strokeDasharray={Math.PI * 2 * 18} strokeDashoffset={(1-learningDelay/10)*Math.PI*2*18} />
-              </svg>
-            </div>
-          )}
-        </div>
         <button
           className={isReviewSlide ? "finish-module-btn" : "module-nav-btn next-btn"}
           onClick={isReviewSlide ? handleFinishModule : handleNext}

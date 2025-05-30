@@ -8,7 +8,7 @@ interface Module {
   level_id: number;
   title: string;
   description: string;
-  sequence: number;
+  order_id: number;
   points: number;
   levelSlug: string;
 }
@@ -28,7 +28,7 @@ const generateModules = (levelId: number, levelSlug: string) => {
     level_id: levelId,
     title: `Module ${i + 1}`,
     description: `Description for Module ${i + 1}`,
-    sequence: i + 1,
+    order_id: i + 1,
     points: 10 * (i + 1),
     levelSlug,
   }));
@@ -38,9 +38,9 @@ const fallbackModuleData: ModuleLevel[] = [
   {
     id: 1,
     name: 'A1-A2',
-    slug: 'a1-a2',
+    slug: 'beginner',
     display_order: 1,
-    modules: generateModules(1, 'a1-a2'),
+    modules: generateModules(1, 'beginner'),
   },
   {
     id: 2,
@@ -61,9 +61,9 @@ const fallbackModuleData: ModuleLevel[] = [
 const Modules: React.FC = () => {
   const { isAuthenticated } = useAuth();
   const [moduleData, setModuleData] = useState<ModuleLevel[]>([]);
+  const [userProgress, setUserProgress] = useState<any>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [completed, setCompleted] = useState<{ [key: string]: boolean }>({}); // key: module.id
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -91,10 +91,11 @@ const Modules: React.FC = () => {
           }))
         }));
         setModuleData(modulesWithSlug);
+        if (data.userProgress) {
+          setUserProgress(data.userProgress);
+        }
       } catch (err: any) {
-        // On error, use fallback mock data
-        setModuleData(fallbackModuleData);
-        setError(null); // Hide error for demo
+        setError('Failed to fetch modules');
       } finally {
         setLoading(false);
       }
@@ -104,10 +105,15 @@ const Modules: React.FC = () => {
     }
   }, [isAuthenticated]);
 
-  const handleModuleClick = (module: Module, idx: number, modules: Module[]) => {
-    // Mark as completed for demo
-    setCompleted(prev => ({ ...prev, [module.id]: true }));
-    navigate(`/modules/${module.levelSlug}/${module.sequence}`);
+  const getProgressKey = (levelId: number) => {
+    if (levelId === 1) return 'progress_A_modules';
+    if (levelId === 2) return 'progress_B_modules';
+    if (levelId === 3) return 'progress_C_modules';
+    return '';
+  };
+
+  const handleModuleClick = (module: Module, unlocked: boolean) => {
+    if (unlocked) navigate(`/modules/${module.levelSlug}/${module.order_id}`);
   };
 
   if (loading) {
@@ -120,30 +126,48 @@ const Modules: React.FC = () => {
 
   return (
     <div className="modules-container">
-      <h1>Modules</h1>
+      <h1>Модули</h1>
       {
-        moduleData.map(level => (
-          <div key={level.id} className="module-level-section">
-            <h3>{level.name}</h3>
-            <div className="modules-grid">
-              {level.modules.map((module, idx) => {
-                // Sequential unlock logic
-                const isFirst = idx === 0;
-                const prevCompleted = idx > 0 ? completed[level.modules[idx - 1].id] : true;
-                const isUnlocked = isFirst || prevCompleted;
-                return (
-                  <div
-                    key={module.id}
-                    className={`module-card${isUnlocked ? '' : ' locked'}`}
-                    onClick={isUnlocked ? () => handleModuleClick(module, idx, level.modules) : undefined}
-                  >
-                    <h4>{module.title}</h4>
-                  </div>
-                );
-              })}
+        moduleData.map((level, levelIdx) => {
+          // Get previous level's progress and module count
+          let prevProgress = 0;
+          let prevModuleCount = 0;
+          if (levelIdx > 0) {
+            const prevLevel = moduleData[levelIdx - 1];
+            const prevProgressKey = getProgressKey(prevLevel.id);
+            prevProgress = userProgress[prevProgressKey] || 0;
+            prevModuleCount = prevLevel.modules.length;
+          }
+          return (
+            <div key={level.id} className="module-level-section">
+              <h3>{level.name}</h3>
+              <div className="modules-grid">
+                {level.modules.map((module, moduleIdx) => {
+                  const progressKey = getProgressKey(module.level_id);
+                  const progress = userProgress[progressKey] || 0;
+                  let unlocked = false;
+                  if (module.order_id === 1 && levelIdx > 0) {
+                    unlocked = prevProgress >= prevModuleCount;
+                  } else {
+                    unlocked = progress >= (module.order_id - 1);
+                  }
+                  // Debug log
+                  console.log(`Module: ${module.title}, order_id: ${module.order_id}, progress: ${progress}, unlocked: ${unlocked}`);
+                  return (
+                    <div
+                      key={module.id}
+                      className={`module-card${unlocked ? '' : ' locked'}`}
+                      onClick={() => handleModuleClick(module, unlocked)}
+                      style={unlocked ? {} : { opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}
+                    >
+                      <h4>{module.title}</h4>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))
+          );
+        })
       }
     </div>
   );
