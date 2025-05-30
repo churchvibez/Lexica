@@ -16,8 +16,11 @@ const app = express();
 
 // CORS configuration
 const corsOptions = {
-  origin: 'http://localhost:3000', // Frontend URL
-  credentials: true, // Allow credentials (cookies, authorization headers)
+  origin: [
+    'http://localhost:3000',
+    'https://churchvibez.github.io' // your GitHub Pages site
+  ],
+  credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
