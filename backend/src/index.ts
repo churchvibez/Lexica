@@ -58,7 +58,7 @@ app.use('/api/protected', authMiddleware, (req, res) => {
   res.json({ message: 'This is a protected route' });
 });
 
-const PORT = 8080;
+const PORT = process.env.PORT || 8080;
 
 AppDataSource.initialize()
   .then(() => {
