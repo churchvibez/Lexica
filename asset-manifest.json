@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Lexica/static/css/main.a73be315.css",
+    "main.js": "/Lexica/static/js/main.20b0cd34.js",
+    "static/js/453.8ab44547.chunk.js": "/Lexica/static/js/453.8ab44547.chunk.js",
+    "index.html": "/Lexica/index.html",
+    "main.a73be315.css.map": "/Lexica/static/css/main.a73be315.css.map",
+    "main.20b0cd34.js.map": "/Lexica/static/js/main.20b0cd34.js.map",
+    "453.8ab44547.chunk.js.map": "/Lexica/static/js/453.8ab44547.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a73be315.css",
+    "static/js/main.20b0cd34.js"
+  ]
+}
