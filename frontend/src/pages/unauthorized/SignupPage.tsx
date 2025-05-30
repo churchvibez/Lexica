@@ -15,11 +15,11 @@ const SignupPage: React.FC = () => {
     setError('');
     setSuccess('');
     if (!username || !password || !confirmPassword) {
-      setError('Please fill in all fields.');
+      setError('Пожалуйста, заполните все поля.');
       return;
     }
     if (password !== confirmPassword) {
-      setError('Passwords do not match.');
+      setError('Пароли не совпадают.');
       return;
     }
     try {
@@ -30,13 +30,13 @@ const SignupPage: React.FC = () => {
       });
       const data = await response.json();
       if (data.success) {
-        setSuccess('Account created! You can now log in.');
+        setSuccess('Аккаунт создан! Теперь вы можете войти.');
         setTimeout(() => navigate('/login'), 1200);
       } else {
-        setError(data.message || 'Signup failed');
+        setError(data.message || 'Ошибка регистрации');
       }
     } catch (err) {
-      setError('An error occurred during signup');
+      setError('Произошла ошибка при регистрации');
     }
   };
 
@@ -49,31 +49,31 @@ const SignupPage: React.FC = () => {
           <input
             className="auth-input"
             type="text"
-            placeholder="Username"
+            placeholder="Имя пользователя"
             value={username}
             onChange={e => setUsername(e.target.value)}
           />
           <input
             className="auth-input"
             type="password"
-            placeholder="Password"
+            placeholder="Пароль"
             value={password}
             onChange={e => setPassword(e.target.value)}
           />
           <input
             className="auth-input"
             type="password"
-            placeholder="Confirm Password"
+            placeholder="Повторите пароль"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
           />
           {error && <div className="auth-error">{error}</div>}
           {success && <div className="auth-success">{success}</div>}
-          <button className="auth-btn" type="submit">Sign Up</button>
+          <button className="auth-btn" type="submit">Зарегистрироваться</button>
         </form>
         <div className="auth-footer">
-          Already have an account?{' '}
-          <span className="auth-link" onClick={() => navigate('/login')}>Login</span>
+          Уже есть аккаунт?{' '}
+          <span className="auth-link" onClick={() => navigate('/login')}>Войти</span>
         </div>
       </div>
     </div>

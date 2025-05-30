@@ -27,11 +27,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     try {
       const decoded = jwtDecode<TokenPayload>(token);
       const isExpired = (decoded.exp * 1000) <= (Date.now() + 30000);
-      console.log('Token expiration check:', {
-        expirationTime: new Date(decoded.exp * 1000).toLocaleTimeString(),
-        currentTime: new Date().toLocaleTimeString(),
-        isExpired
-      });
       return !isExpired;
     } catch {
       return false;
@@ -122,7 +117,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const refreshToken = localStorage.getItem('refreshToken');
 
       if (accessToken && refreshToken) {
-        console.log('Checking token expiration...');
         if (!checkTokenExpiration(accessToken)) {
           console.log('Access token expired, attempting refresh...');
           const refreshSuccess = await refreshAccessToken(refreshToken);

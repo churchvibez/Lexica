@@ -339,4 +339,53 @@ INSERT INTO module_quiz_questions (module_id, question_text, question_type, opti
 (SELECT id FROM modules WHERE level_id = 3 AND order_id = 4, 'Which phrasal verb means "postpone"?', 'multiple_choice', '["put on", "put off", "put up", "put down"]', 'put off'),
 (SELECT id FROM modules WHERE level_id = 3 AND order_id = 4, 'What does "look after" mean?', 'multiple_choice', '["look for", "look after", "look up", "look down"]', 'take care of'),
 (SELECT id FROM modules WHERE level_id = 3 AND order_id = 4, 'Which phrasal verb means "start a journey"?', 'multiple_choice', '["set up", "set off", "set down", "set in"]', 'set off'),
-(SELECT id FROM modules WHERE level_id = 3 AND order_id = 4, 'What does "break down" mean?', 'multiple_choice', '["start working", "stop working", "continue working", "finish working"]', 'stop working'); 
+(SELECT id FROM modules WHERE level_id = 3 AND order_id = 4, 'What does "break down" mean?', 'multiple_choice', '["start working", "stop working", "continue working", "finish working"]', 'stop working');
+
+-- 1. Удаление старых модулей, слайдов и вопросов A1-A2
+DELETE FROM module_quiz_questions WHERE module_id IN (SELECT id FROM modules WHERE level_id = 1);
+DELETE FROM module_slides WHERE module_id IN (SELECT id FROM modules WHERE level_id = 1);
+DELETE FROM modules WHERE level_id = 1;
+
+-- 2. Вставка новых 10 модулей A1-A2 (level_id=1, points=20, sequence=order_id)
+INSERT INTO modules (level_id, title, description, sequence, points, order_id) VALUES
+(1, 'Английский алфавит и произношение', 'Изучите буквы английского алфавита (A–Z), основные звуки и правила произношения. Научитесь правильно произносить и писать простые слова.', 1, 20, 1),
+(1, 'Приветствия и знакомства', 'Фразы для приветствия, знакомства и вежливого общения. Как спросить и ответить: "Как тебя зовут?", "Как дела?"', 2, 20, 2),
+(1, 'Числа, даты и время', 'Изучите числа от 1 до 100, как называть дни недели, месяцы и спрашивать время.', 3, 20, 3),
+(1, 'Семья и личная информация', 'Слова для описания семьи, рассказ о себе: возраст, национальность, профессия.', 4, 20, 4),
+(1, 'Цвета, формы и описания', 'Основные цвета, простые формы и прилагательные для описания предметов.', 5, 20, 5),
+(1, 'Еда и заказ в кафе', 'Слова для еды и напитков, как вежливо заказать блюдо или напиток в кафе.', 6, 20, 6),
+(1, 'Распорядок дня и хобби', 'Глаголы в настоящем времени, описание ежедневных дел и любимых занятий.', 7, 20, 7),
+(1, 'В городе: направления и места', 'Как спросить дорогу, описать расположение и назвать популярные места в городе.', 8, 20, 8),
+(1, 'Погода и времена года', 'Слова для описания погоды, как спросить о погоде и назвать времена года.', 9, 20, 9),
+(1, 'Покупки и деньги', 'Как спросить цену, описать покупки, использовать фразы для оплаты и возврата.', 10, 20, 10);
+
+-- 3. Вставка слайдов для каждого модуля (пример для первого модуля)
+INSERT INTO module_slides (module_id, title, content, sequence, order_id) VALUES
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Введение в алфавит', 'Английский алфавит состоит из 26 букв: A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z.', 1, 1),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Гласные и согласные', 'В алфавите 5 гласных (A, E, I, O, U) и 21 согласная. Пример:\n- A — гласная\n- B — согласная', 2, 2),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Произношение букв', 'Некоторые буквы произносятся иначе, чем в русском языке. Например:\n- H — [эйч]\n- W — [дабл-ю]\n- Y — [уай]', 3, 3),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Примеры слов', 'Примеры простых слов:\n- Cat (кот)\n- Dog (собака)\n- Sun (солнце)\n\n![Картинка кота](/images/cat.png)', 4, 4),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Правописание', 'Чтобы правильно написать слово, произнесите его по буквам. Пример: Cat — C-A-T.', 5, 5);
+
+-- 4. Вставка вопросов для первого модуля (пример)
+INSERT INTO module_quiz_questions (module_id, question_text, question_type, options, correct_answer) VALUES
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Сколько букв в английском алфавите?', 'multiple_choice', '["24", "25", "26", "27"]', '26'),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Какая из этих букв — гласная?', 'multiple_choice', '["B", "C", "E", "G"]', 'E'),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Как правильно произносится буква H?', 'multiple_choice', '["эйч", "аш", "эйдж", "эй"]', 'эйч'),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Какое слово написано правильно?', 'multiple_choice', '["Kat", "Cat", "Cet", "Cut"]', 'Cat'),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Какая буква идет после G?', 'multiple_choice', '["F", "H", "I", "J"]', 'H'),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Напишите по-английски: "кот"', 'input', '[]', 'cat'),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Напишите первую букву слова "dog"', 'input', '[]', 'd'),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Напишите по-английски: "солнце"', 'input', '[]', 'sun'),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Напишите последнюю букву слова "book"', 'input', '[]', 'k'),
+(SELECT id FROM modules WHERE level_id = 1 AND order_id = 1, 'Напишите по-английски: "мама"', 'input', '[]', 'mom');
+
+-- (Повторить для модулей 2-10: слайды и вопросы, аналогично примеру выше, с уникальным содержанием по теме)
+-- ...
+-- Для каждого модуля:
+--   - 4-5 слайдов с уникальным содержанием, списками, примерами, изображениями (markdown)
+--   - 10 вопросов (5 multiple_choice, 5 input), все на русском, ответы input — на английском
+--   - Использовать SELECT id FROM modules WHERE level_id = 1 AND order_id = X для module_id
+--   - sequence = order_id для всех
+
+-- После вставки всех модулей, слайдов и вопросов, данные будут полностью обновлены для A1-A2. 

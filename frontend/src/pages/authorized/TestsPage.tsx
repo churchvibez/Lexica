@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import '../../design.scss';
+import { useNavigate } from 'react-router-dom';
 
 interface Test {
   id: number;
@@ -7,7 +8,6 @@ interface Test {
   title: string;
   description: string;
   sequence: number;
-  levelSlug: string;
 }
 
 interface TestLevel {
@@ -18,70 +18,92 @@ interface TestLevel {
   tests: Test[];
 }
 
-const generateTests = (levelId: number, levelSlug: string) => {
-  return Array.from({ length: 10 }, (_, i) => ({
-    id: levelId * 100 + i + 1,
-    level_id: levelId,
-    title: `Test ${i + 1}`,
-    description: `Description for Test ${i + 1}`,
-    sequence: i + 1,
-    levelSlug,
-  }));
-};
-
-const fallbackTestData: TestLevel[] = [
-  {
-    id: 1,
-    name: 'A1-A2',
-    slug: 'a1-a2',
-    display_order: 1,
-    tests: generateTests(1, 'a1-a2'),
-  },
-  {
-    id: 2,
-    name: 'B1-B2',
-    slug: 'b1-b2',
-    display_order: 2,
-    tests: generateTests(2, 'b1-b2'),
-  },
-  {
-    id: 3,
-    name: 'C1-C2',
-    slug: 'c1-c2',
-    display_order: 3,
-    tests: generateTests(3, 'c1-c2'),
-  },
-];
-
 const TestsPage: React.FC = () => {
-  const [testData, setTestData] = useState<TestLevel[]>(fallbackTestData);
+  const [testData, setTestData] = useState<TestLevel[]>([]);
+  const [userProgress, setUserProgress] = useState<any>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  // No backend fetch for now, just use fallbackTestData
+  useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        setLoading(true);
+        const accessToken = localStorage.getItem('accessToken');
+        if (!accessToken) throw new Error('No access token');
+        const res = await fetch('http://localhost:8080/api/tests', {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Failed to fetch tests');
+        setTestData(data.data);
+        setUserProgress(data.userProgress || {});
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTests();
+  }, []);
 
-  const handleTestClick = (test: Test) => {
-    // No-op for now
+  const getProgressKey = (levelId: number) => {
+    if (levelId === 1) return 'progress_A_tests';
+    if (levelId === 2) return 'progress_B_tests';
+    if (levelId === 3) return 'progress_C_tests';
+    return '';
   };
+
+  const handleTestClick = (test: Test, unlocked: boolean) => {
+    if (unlocked) navigate(`/tests/${test.id}`);
+  };
+
+  if (loading) return <div></div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
     <div className="modules-container">
-      <h1>Tests</h1>
+      <h1>Тесты</h1>
       {
-        testData.map(level => (
-          <div key={level.id} className="module-level-section">
-            <h3>{level.name}</h3>
-            <div className="modules-grid">
-              {level.tests.map(test => (
-                <div
-                  key={test.id}
-                  className="module-card"
-                  onClick={() => handleTestClick(test)}
-                >
-                  <h4>{test.title}</h4>
-                </div>
-              ))}
+        testData.map((level, levelIdx) => {
+          // Get previous level's progress and test count
+          let prevProgress = 0;
+          let prevTestCount = 0;
+          if (levelIdx > 0) {
+            const prevLevel = testData[levelIdx - 1];
+            const prevProgressKey = getProgressKey(prevLevel.id);
+            prevProgress = userProgress[prevProgressKey] || 0;
+            prevTestCount = prevLevel.tests.length;
+          }
+          return (
+            <div key={level.id} className="module-level-section">
+              <h3>{level.name}</h3>
+              <div className="modules-grid">
+                {level.tests.map((test, testIdx) => {
+                  const progressKey = getProgressKey(test.level_id);
+                  const progress = userProgress[progressKey] || 0;
+                  let unlocked = false;
+                  if (test.sequence === 1 && levelIdx > 0) {
+                    // Only unlock first test in B/C if previous level is fully completed
+                    unlocked = prevProgress >= prevTestCount;
+                  } else {
+                    unlocked = progress >= (test.sequence - 1);
+                  }
+                  return (
+                    <div
+                      key={test.id}
+                      className={`module-card${unlocked ? '' : ' module-card-locked'}`}
+                      onClick={() => handleTestClick(test, unlocked)}
+                      style={unlocked ? {} : { opacity: 0.5, pointerEvents: 'none', cursor: 'not-allowed' }}
+                    >
+                      <h4>{test.title}</h4>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        ))
+          );
+        })
       }
     </div>
   );
