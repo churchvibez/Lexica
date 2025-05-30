@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.tsx';
 import bcrypt from 'bcryptjs';
 import '../../design.scss';
+import { API_BASE_URL } from '../../apiConfig';
 
 interface User {
   id: number;
@@ -44,7 +45,7 @@ const ProfilePage: React.FC = () => {
       setLoading(true);
       try {
         // Fetch leaderboard for rank
-        const leaderboardRes = await fetch('http://localhost:8080/api/users/leaderboard');
+        const leaderboardRes = await fetch(`${API_BASE_URL}/api/users/leaderboard`);
         const leaderboardData = await leaderboardRes.json();
         let userRank: number | null = null;
         let userData: User | null = null;
@@ -57,7 +58,7 @@ const ProfilePage: React.FC = () => {
           });
         }
         // Fetch user details (for completed_* fields)
-        const userRes = await fetch(`http://localhost:8080/api/users/profile?username=${username}`);
+        const userRes = await fetch(`${API_BASE_URL}/api/users/profile?username=${username}`);
         const userDetails = await userRes.json();
         console.log('DEBUG /api/users/profile response:', userDetails);
         if (userDetails.success) {
@@ -101,7 +102,7 @@ const ProfilePage: React.FC = () => {
     }
     try {
       const hashed = await bcrypt.hash(password, 10);
-      const res = await fetch('http://localhost:8080/api/users/change-password', {
+      const res = await fetch(`${API_BASE_URL}/api/users/change-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password: hashed }),

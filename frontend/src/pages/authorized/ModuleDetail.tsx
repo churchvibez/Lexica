@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.tsx';
+import { API_BASE_URL } from '../../apiConfig';
 
 interface Slide {
   id: number;
@@ -54,7 +55,7 @@ const ModuleDetail: React.FC = () => {
           throw new Error('No access token found');
         }
 
-        const response = await fetch(`http://localhost:8080/api/modules/${levelSlug}/${moduleOrderId}`, {
+        const response = await fetch(`${API_BASE_URL}/api/modules/${levelSlug}/${moduleOrderId}`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
           },
@@ -295,7 +296,7 @@ const ModuleDetail: React.FC = () => {
         try {
           const accessToken = localStorage.getItem('accessToken');
           if (!accessToken) return;
-          const res = await fetch(`http://localhost:8080/api/modules/${moduleData.module.id}/complete`, {
+          const res = await fetch(`${API_BASE_URL}/api/modules/${moduleData.module.id}/complete`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
