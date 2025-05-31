@@ -9,6 +9,7 @@ import { authMiddleware } from './middleware/auth';
 import { moduleRouter } from './routes/modules';
 import usersRouter from './routes/users';
 import { testRouter } from './routes/tests';
+import { initializeDatabase } from './database/init';
 
 dotenv.config();
 
@@ -63,11 +64,26 @@ app.use('/api/protected', authMiddleware, (req, res) => {
 
 const PORT = process.env.PORT || 8080;
 
-AppDataSource.initialize()
-  .then(() => {
-    console.log("this message confirms the connection is up");
+// Initialize database and start server
+async function startServer() {
+  try {
+    // Initialize TypeORM
+    await AppDataSource.initialize();
+    console.log("Database connection established");
+
+    // Initialize database tables and data
+    await initializeDatabase();
+    console.log("Database tables and data initialized");
+
+    // Start server only after database is ready
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
-  })
-  .catch((error) => console.log("TypeORM connection error: ", error)); 
+  } catch (error) {
+    console.error("Error starting server:", error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer(); 

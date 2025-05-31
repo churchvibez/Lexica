@@ -54,6 +54,4 @@ export async function initializeDatabase() {
   } finally {
     await pool.end();
   }
-}
-
-initializeDatabase(); 
+} 
