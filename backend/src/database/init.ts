@@ -16,6 +16,19 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
+async function tableExists(tableName: string): Promise<boolean> {
+  try {
+    const [rows] = await pool.query(
+      'SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = ?',
+      [process.env.MYSQLDATABASE, tableName]
+    );
+    return Array.isArray(rows) && rows.length > 0;
+  } catch (error) {
+    console.error(`Error checking if table ${tableName} exists:`, error);
+    return false;
+  }
+}
+
 export async function initializeDatabase() {
   try {
     console.log('Initializing database with complete schema...');
@@ -37,16 +50,37 @@ export async function initializeDatabase() {
     console.log('Successfully read schema.sql');
     
     // Split the SQL file into individual statements
+    // This regex looks for semicolons that are not inside quotes
     const statements = schemaSQL
-      .split(';')
+      .split(/;(?=(?:[^'"]*['"][^'"]*['"])*[^'"]*$)/)
       .map(statement => statement.trim())
-      .filter(statement => statement.length > 0);
+      .filter(statement => statement.length > 0 && !statement.startsWith('--'));
 
     console.log(`Found ${statements.length} SQL statements to execute`);
 
     // Execute each statement
     for (const statement of statements) {
       try {
+        // Skip comments and empty statements
+        if (statement.startsWith('--') || statement.length === 0) {
+          continue;
+        }
+
+        // Check if this is a CREATE TABLE statement
+        if (statement.toUpperCase().startsWith('CREATE TABLE')) {
+          const tableName = statement.match(/CREATE TABLE (?:IF NOT EXISTS )?`?(\w+)`?/i)?.[1];
+          if (tableName) {
+            const exists = await tableExists(tableName);
+            if (exists) {
+              console.log(`Table ${tableName} already exists, skipping creation`);
+              continue;
+            }
+          }
+        }
+
+        // Log the first 100 characters of the statement for debugging
+        console.log('Executing statement:', statement.substring(0, 100) + '...');
+        
         await pool.query(statement);
         console.log('Executed SQL statement successfully');
       } catch (error: any) {
@@ -57,6 +91,7 @@ export async function initializeDatabase() {
         }
         // For other errors, log them but continue
         console.error('Error executing statement:', error.message);
+        console.error('Problematic statement:', statement);
         continue;
       }
     }
