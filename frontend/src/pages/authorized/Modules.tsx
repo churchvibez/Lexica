@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import '../../design.scss';
 import { useAuth } from '../../context/AuthContext.tsx';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../apiConfig.ts';
 
 interface Module {
   id: number;
@@ -74,7 +75,7 @@ const Modules: React.FC = () => {
         if (!accessToken) {
           throw new Error('No access token found');
         }
-        const response = await fetch('http://localhost:8080/api/modules', {
+        const response = await fetch(`${API_BASE_URL}/api/modules`, {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
           },
