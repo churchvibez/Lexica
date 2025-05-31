@@ -6,11 +6,14 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "build": "tsc",
+    "build": "tsc && node build.js",
     "test": "jest",
     "test-db": "ts-node src/testConnection.ts",
     "init-db": "ts-node src/database/init.ts"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "@types/bcrypt": "^5.0.2",
     "bcrypt": "^6.0.0",
@@ -18,8 +21,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
+    "fs-extra": "^11.2.0",
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.9.2",
+    "reflect-metadata": "^0.2.1",
     "typeorm": "^0.3.20",
     "typescript": "^5.3.3"
   },
@@ -27,10 +32,12 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.18",
     "@types/express": "^4.17.21",
+    "@types/fs-extra": "^11.0.4",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.11.24",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.3"
   }
 }
