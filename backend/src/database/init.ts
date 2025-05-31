@@ -22,13 +22,27 @@ export async function initializeDatabase() {
     
     // Read the complete schema.sql file
     const schemaPath = path.join(__dirname, 'schema.sql');
+    console.log('Looking for schema.sql at:', schemaPath);
+    
+    // Check if file exists
+    if (!fs.existsSync(schemaPath)) {
+      console.error('schema.sql not found at:', schemaPath);
+      console.log('Current directory:', __dirname);
+      console.log('Directory contents:', fs.readdirSync(__dirname));
+      throw new Error(`schema.sql not found at ${schemaPath}`);
+    }
+    
+    console.log('Found schema.sql, reading contents...');
     const schemaSQL = fs.readFileSync(schemaPath, 'utf8');
+    console.log('Successfully read schema.sql');
     
     // Split the SQL file into individual statements
     const statements = schemaSQL
       .split(';')
       .map(statement => statement.trim())
       .filter(statement => statement.length > 0);
+
+    console.log(`Found ${statements.length} SQL statements to execute`);
 
     // Execute each statement
     for (const statement of statements) {
