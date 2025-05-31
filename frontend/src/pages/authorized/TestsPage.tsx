@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import '../../design.scss';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext.tsx';
+import { API_BASE_URL } from '../../apiConfig.ts';
 
 interface Test {
   id: number;
@@ -24,28 +26,56 @@ const TestsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchTests = async () => {
       try {
         setLoading(true);
         const accessToken = localStorage.getItem('accessToken');
-        if (!accessToken) throw new Error('No access token');
-        const res = await fetch('http://localhost:8080/api/tests', {
-          headers: { 'Authorization': `Bearer ${accessToken}` }
+        console.log('Access Token:', accessToken); // Debug log
+        console.log('Is Authenticated:', isAuthenticated); // Debug log
+        
+        if (!accessToken) {
+          console.log('No access token found, redirecting to login...'); // Debug log
+          navigate('/login');
+          return;
+        }
+
+        console.log('Making API request to:', `${API_BASE_URL}/api/tests`); // Debug log
+        const res = await fetch(`${API_BASE_URL}/api/tests`, {
+          headers: { 
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          }
         });
+        
+        console.log('Response status:', res.status); // Debug log
         const data = await res.json();
+        console.log('Response data:', data); // Debug log
+
         if (!data.success) throw new Error(data.message || 'Failed to fetch tests');
         setTestData(data.data);
         setUserProgress(data.userProgress || {});
       } catch (err: any) {
+        console.error('Error in fetchTests:', err); // Debug log
         setError(err.message);
+        if (err.message.includes('Invalid token') || err.message.includes('No access token')) {
+          navigate('/login');
+        }
       } finally {
         setLoading(false);
       }
     };
-    fetchTests();
-  }, []);
+
+    if (isAuthenticated) {
+      console.log('User is authenticated, fetching tests...'); // Debug log
+      fetchTests();
+    } else {
+      console.log('User is not authenticated, redirecting to login...'); // Debug log
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
 
   const getProgressKey = (levelId: number) => {
     if (levelId === 1) return 'progress_A_tests';

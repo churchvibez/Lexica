@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.tsx';
+import { API_BASE_URL } from '../../apiConfig.ts';
+import '../../design.scss';
 
 interface TestQuestion {
   id: number;
@@ -59,7 +61,7 @@ const TestDetail: React.FC = () => {
         setLoading(true);
         const accessToken = localStorage.getItem('accessToken');
         if (!accessToken) throw new Error('No access token');
-        const res = await fetch(`http://localhost:8080/api/tests/${testId}`, {
+        const res = await fetch(`${API_BASE_URL}/api/tests/${testId}`, {
           headers: { 'Authorization': `Bearer ${accessToken}` }
         });
         if (res.status === 403) {
@@ -121,7 +123,7 @@ const TestDetail: React.FC = () => {
         try {
           const accessToken = localStorage.getItem('accessToken');
           if (!accessToken) return;
-          const res = await fetch(`http://localhost:8080/api/tests/${testData.test.id}/complete`, {
+          const res = await fetch(`${API_BASE_URL}/api/tests/${testData.test.id}/complete`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
