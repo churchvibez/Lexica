@@ -83,13 +83,13 @@ export const authService = {
 
       return {
         success: false,
-        message: 'Invalid username or password'
+        message: 'Неправильное имя пользователя или пароль'
       };
     } catch (error) {
       console.error('Login error details:', error);
       return {
         success: false,
-        message: error instanceof Error ? error.message : 'An error occurred during login'
+        message: error instanceof Error ? error.message : 'Ошибка при входе'
       };
     }
   },
@@ -164,19 +164,19 @@ export const authService = {
 
   async signup(username: string, password: string): Promise<{ success: boolean; message: string }> {
     if (!username || !password) {
-      return { success: false, message: 'Username and password required' };
+      return { success: false, message: 'Имя пользователя и пароль обязательны' };
     }
     try {
       const [existing] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
       if (Array.isArray(existing) && existing.length > 0) {
-        return { success: false, message: 'Username already taken' };
+        return { success: false, message: 'Имя пользователя уже занято' };
       }
       const hashed = await bcrypt.hash(password, 10);
       await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashed]);
-      return { success: true, message: 'Account created' };
+      return { success: true, message: 'Аккаунт создан' };
     } catch (err) {
       console.error('Signup error:', err);
-      return { success: false, message: 'Signup failed' };
+      return { success: false, message: 'Ошибка при создании аккаунта' };
     }
   }
 }; 
