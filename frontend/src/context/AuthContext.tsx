@@ -27,9 +27,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const checkTokenExpiration = (token: string): boolean => {
     try {
       const decoded = jwtDecode<TokenPayload>(token);
+      console.log('Token expiration check:', {
+        exp: decoded.exp,
+        now: Date.now() / 1000,
+        isValid: (decoded.exp * 1000) > (Date.now() + 30000)
+      });
       const isExpired = (decoded.exp * 1000) <= (Date.now() + 30000);
       return !isExpired;
-    } catch {
+    } catch (error) {
+      console.error('Error checking token expiration:', error);
       return false;
     }
   };
@@ -52,6 +58,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       const data = await response.json();
+      console.log('Refresh token response:', data);
 
       if (data.success) {
         console.log('Successfully refreshed access token');
@@ -85,6 +92,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const accessToken = localStorage.getItem('accessToken');
       const refreshToken = localStorage.getItem('refreshToken');
       const storedUsername = localStorage.getItem('username');
+
+      console.log('Stored auth data:', {
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        username: storedUsername
+      });
 
       if (accessToken && refreshToken && storedUsername) {
         console.log('Found stored tokens, checking expiration...');
