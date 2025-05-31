@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import '../../design.scss';
 import { useAuth } from '../../context/AuthContext.tsx';
+import { API_BASE_URL } from '../../apiConfig.ts';
 
 interface User {
   id: number;
@@ -43,7 +44,7 @@ const LeaderboardPage: React.FC = () => {
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/users/leaderboard');
+        const response = await fetch(`${API_BASE_URL}/api/users/leaderboard`);
         const data = await response.json();
         if (data.success) {
           setUsers(data.users);
