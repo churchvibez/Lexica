@@ -38,46 +38,41 @@ export const authService = {
         console.log('Stored password hash:', user.password);
         console.log('Input password:', password);
         
-        try {
-          const passwordMatch = await bcrypt.compare(password, user.password);
-          console.log('Password match:', passwordMatch);
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        console.log('Password match:', passwordMatch);
 
-          if (passwordMatch) {
-            try {
-              // Generate tokens
-              const accessToken = jwt.sign(
-                { username: user.username, userId: user.id } as TokenPayload,
-                JWT_SECRET,
-                { expiresIn: ACCESS_TOKEN_EXPIRY }
-              );
+        if (passwordMatch) {
+          try {
+            // Generate tokens
+            const accessToken = jwt.sign(
+              { username: user.username, userId: user.id } as TokenPayload,
+              JWT_SECRET,
+              { expiresIn: ACCESS_TOKEN_EXPIRY }
+            );
 
-              const refreshToken = jwt.sign(
-                { username: user.username, userId: user.id } as TokenPayload,
-                JWT_REFRESH_SECRET,
-                { expiresIn: REFRESH_TOKEN_EXPIRY }
-              );
+            const refreshToken = jwt.sign(
+              { username: user.username, userId: user.id } as TokenPayload,
+              JWT_REFRESH_SECRET,
+              { expiresIn: REFRESH_TOKEN_EXPIRY }
+            );
 
-              // Store refresh token in database
-              await pool.query(
-                'UPDATE users SET refresh_token = ? WHERE id = ?',
-                [refreshToken, user.id]
-              );
+            // Store refresh token in database
+            await pool.query(
+              'UPDATE users SET refresh_token = ? WHERE id = ?',
+              [refreshToken, user.id]
+            );
 
-              return {
-                success: true,
-                message: 'Login successful',
-                username: user.username,
-                accessToken,
-                refreshToken
-              };
-            } catch (tokenError) {
-              console.error('Token generation error:', tokenError);
-              throw new Error('Failed to generate authentication tokens');
-            }
+            return {
+              success: true,
+              message: 'Login successful',
+              username: user.username,
+              accessToken,
+              refreshToken
+            };
+          } catch (tokenError) {
+            console.error('Token generation error:', tokenError);
+            throw new Error('Failed to generate authentication tokens');
           }
-        } catch (bcryptError) {
-          console.error('Password comparison error:', bcryptError);
-          throw new Error('Failed to verify password');
         }
       }
 
@@ -167,10 +162,13 @@ export const authService = {
       return { success: false, message: 'Имя пользователя и пароль обязательны' };
     }
     try {
-      const [existing] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
-      if (Array.isArray(existing) && existing.length > 0) {
+      const [rows] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
+      const existingUsers = rows as any[];
+      
+      if (existingUsers.length > 0) {
         return { success: false, message: 'Имя пользователя уже занято' };
       }
+
       const hashed = await bcrypt.hash(password, 10);
       await pool.query('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashed]);
       return { success: true, message: 'Аккаунт создан' };
